@@ -3,180 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Math Defender: Galaxy PWA</title>
+    <title>Math Defender: Ultimate</title>
     
-    <!-- PWA Primary Meta Tags -->
+    <!-- PWA Settings -->
     <meta name="theme-color" content="#0f0c29">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="MathDefender">
     
+    <!-- Link to Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.6.0/confetti.browser.min.js"></script>
+    <!-- Chart.js removed as it wasn't being utilized in visual charts to keep load light -->
 
     <style>
         body {
             font-family: 'Fredoka', sans-serif;
             background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            touch-action: none;
-            user-select: none;
-            -webkit-user-select: none;
-            color: white;
-            overflow: hidden;
+            transition: background 2s ease;
+            touch-action: none; user-select: none; -webkit-user-select: none;
+            color: white; overflow: hidden;
         }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        body.deep { background: linear-gradient(135deg, #020617, #0f172a, #1e1b4b); }
 
         .glass-panel {
-            backdrop-filter: blur(16px);
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(16px); background: rgba(255, 255, 255, 0.1);
+            border-radius: 24px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
-
-        .btn-game {
-            transition: all 0.1s;
-            position: relative;
-            top: 0;
-            box-shadow: 0 6px 0 rgba(0,0,0,0.3);
-        }
-
-        .btn-game:active {
-            top: 6px;
-            box-shadow: 0 0 0 rgba(0,0,0,0.3);
-        }
+        .btn-game { transition: all 0.1s; position: relative; top: 0; box-shadow: 0 6px 0 rgba(0,0,0,0.3); }
+        .btn-game:active { top: 6px; box-shadow: 0 0 0 rgba(0,0,0,0.3); }
 
         .meteor {
-            position: absolute;
-            width: 85px;
-            height: 85px;
-            border-radius: 50%;
+            position: absolute; width: 85px; height: 85px; border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #a8a29e, #57534e);
-            border: 4px solid #44403c;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.2rem;
-            font-weight: bold;
-            color: white;
+            border: 4px solid #44403c; display: flex; align-items: center; justify-content: center;
+            font-size: 2.2rem; font-weight: bold; color: white;
             box-shadow: 0 0 15px rgba(0,0,0,0.5), inset -10px -10px 20px rgba(0,0,0,0.5);
-            cursor: pointer;
-            z-index: 20;
-            transition: transform 0.1s;
+            cursor: pointer; z-index: 20;
         }
-
-        .laser {
-            position: absolute;
-            width: 8px;
-            background: #00ffff;
-            transform-origin: bottom center;
-            box-shadow: 0 0 10px #00ffff, 0 0 20px white;
-            z-index: 15;
-            pointer-events: none;
-            border-radius: 4px;
-        }
-
-        .ship-base { 
-            filter: drop-shadow(0 0 10px cyan); 
-            transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.1s; 
-        }
+        .meteor.boss { width: 160px; height: 160px; font-size: 4rem; background: radial-gradient(circle at 30% 30%, #7f1d1d, #450a0a); border-color: #ef4444; box-shadow: 0 0 30px #ef4444; }
+        .meteor.power-up { background: radial-gradient(circle at 30% 30%, #3b82f6, #1e3a8a); border-color: #60a5fa; box-shadow: 0 0 20px #3b82f6; animation: pulse 1s infinite alternate; }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.05); } }
+        
+        .laser { position: absolute; width: 8px; background: #00ffff; transform-origin: bottom center; box-shadow: 0 0 10px #00ffff, 0 0 20px white; z-index: 15; pointer-events: none; border-radius: 4px; }
+        .ship-base { filter: drop-shadow(0 0 10px cyan); transition: left 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.1s; }
+        .ship-shield { position: absolute; width: 120px; height: 120px; border: 4px solid #3b82f6; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 20px #3b82f6; opacity: 0.6; animation: rotate 3s linear infinite; }
+        @keyframes rotate { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
         
         .explosion { position: absolute; pointer-events: none; animation: explode 0.5s forwards; font-size: 3.5rem; z-index: 25; }
         @keyframes explode { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
-
         .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-2px, 0, 0); }
-            20%, 80% { transform: translate3d(4px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-            40%, 60% { transform: translate3d(6px, 0, 0); }
-        }
-
+        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
         .pop-in { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop {
-            0% { transform: scale(0); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        @keyframes pop { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body class="h-screen w-screen overflow-hidden flex flex-col items-center justify-center">
 
     <!-- INSTALL PROMPT -->
-    <div id="install-banner" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xs">
-        <div class="glass-panel p-4 flex items-center justify-between bg-indigo-900/80">
-            <span class="text-sm font-bold">Install for Offline Play?</span>
+    <div id="install-banner" class="hidden fixed top-4 z-[100] w-full max-w-xs px-4">
+        <div class="glass-panel p-3 flex items-center justify-between bg-indigo-900/90 border-yellow-400">
+            <span class="text-xs font-bold text-white">📲 Install App?</span>
             <button id="install-button" class="bg-yellow-500 text-black px-3 py-1 rounded-full text-xs font-bold shadow-lg">Install</button>
+            <button onclick="document.getElementById('install-banner').classList.add('hidden')" class="ml-2 text-gray-400 text-xs">✕</button>
         </div>
     </div>
 
     <!-- MENU SCREEN -->
-    <div id="menu-screen" class="absolute inset-0 flex flex-col items-center justify-center p-4 z-50 bg-black/40 backdrop-blur-sm">
-        <div class="glass-panel w-full max-w-md p-8 text-center pop-in">
-            <div class="text-7xl mb-4 animate-bounce">🛡️</div>
-            <h1 class="text-4xl font-bold text-white mb-2 tracking-wide">Math Defender</h1>
-            <p class="text-blue-200 text-lg mb-6">Galaxy PWA Edition</p>
-
-            <div id="main-menu-buttons" class="grid grid-cols-2 gap-4">
-                <button onclick="startGame('add')" class="btn-game w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-2xl text-xl flex flex-col items-center">
-                    <span>+ Add</span>
-                </button>
-                <button onclick="startGame('sub')" class="btn-game w-full bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-2xl text-xl flex flex-col items-center">
-                    <span>− Sub</span>
-                </button>
-                <button onclick="showTableSelection()" class="btn-game w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 rounded-2xl text-xl flex flex-col items-center">
-                    <span>× Mul</span>
-                </button>
-                <button onclick="startGame('div')" class="btn-game w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 rounded-2xl text-xl flex flex-col items-center">
-                    <span>÷ Div</span>
-                </button>
-                <button onclick="startGame('mix')" class="btn-game col-span-2 mt-2 w-full bg-gradient-to-r from-pink-500 to-orange-500 text-white font-bold py-4 rounded-2xl text-xl">
-                    🎲 Galaxy Mix
-                </button>
+    <div id="menu-screen" class="absolute inset-0 flex flex-col items-center justify-center p-4 z-50 bg-black/40 backdrop-blur-sm overflow-y-auto">
+        <div class="glass-panel w-full max-w-md p-6 text-center pop-in my-auto">
+            
+            <div class="flex justify-between items-start mb-2">
+                <div class="text-left">
+                    <p class="text-[10px] text-blue-200 uppercase tracking-widest font-bold">Stars</p>
+                    <p class="text-xl font-bold text-yellow-400">⭐ <span id="total-stars">0</span></p>
+                </div>
+                <div class="text-5xl animate-bounce cursor-pointer" onclick="toggleVoice()">
+                    <span id="voice-icon">🎙️</span>
+                </div>
+                <div class="text-right">
+                     <button onclick="showParents()" class="text-[10px] text-gray-400 border border-gray-500 rounded px-2 py-1 hover:bg-white/10">Parents</button>
+                </div>
             </div>
 
-            <div id="table-selection" class="hidden w-full">
-                <h3 class="text-white font-bold text-xl mb-4">Choose a Table</h3>
-                <div class="grid grid-cols-5 gap-3 mb-6">
-                    <button onclick="startGame('mul', 1)" class="btn-game bg-white/20 hover:bg-white/40 text-white font-bold py-3 rounded-xl">1</button>
-                    <button onclick="startGame('mul', 2)" class="btn-game bg-white/20 hover:bg-white/40 text-white font-bold py-3 rounded-xl">2</button>
-                    <button onclick="startGame('mul', 3)" class="btn-game bg-white/20 hover:bg-white/40 text-white font-bold py-3 rounded-xl">3</button>
-                    <button onclick="startGame('mul', 4)" class="btn-game bg-white/20 hover:bg-white/40 text-white font-bold py-3 rounded-xl">4</button>
-                    <button onclick="startGame('mul', 5)" class="btn-game bg-white/20 hover:bg-white/40 text-white font-bold py-3 rounded-xl">5</button>
-                    <button onclick="startGame('mul', 6)" class="btn-game bg-white/20 hover:bg-white/40 text-white font-bold py-3 rounded-xl">6</button>
-                    <button onclick="startGame('mul', 7)" class="btn-game bg-white/20 hover:bg-white/40 text-white font-bold py-3 rounded-xl">7</button>
-                    <button onclick="startGame('mul', 8)" class="btn-game bg-white/20 hover:bg-white/40 text-white font-bold py-3 rounded-xl">8</button>
-                    <button onclick="startGame('mul', 9)" class="btn-game bg-white/20 hover:bg-white/40 text-white font-bold py-3 rounded-xl">9</button>
-                    <button onclick="startGame('mul', 10)" class="btn-game bg-white/20 hover:bg-white/40 text-white font-bold py-3 rounded-xl">10</button>
+            <div id="daily-mission-card" class="bg-blue-900/50 rounded-xl p-3 mb-4 border border-blue-400/30 text-left">
+                <p class="text-[10px] text-blue-200 uppercase tracking-widest font-bold">Daily Mission</p>
+                <div class="flex justify-between items-center">
+                    <p id="mission-text" class="text-sm font-bold text-white">Loading...</p>
+                    <span id="mission-status" class="text-xs bg-gray-600 px-2 py-1 rounded text-white">0%</span>
                 </div>
-                <button onclick="startGame('mul', 'all')" class="btn-game w-full mb-4 bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-4 rounded-xl text-xl">Practice All</button>
-                <button onclick="hideTableSelection()" class="text-blue-300 hover:text-white underline font-semibold">Back</button>
+                <div class="w-full bg-gray-700 h-1 mt-2 rounded-full overflow-hidden">
+                    <div id="mission-bar" class="bg-yellow-400 h-full w-0 transition-all duration-500"></div>
+                </div>
+            </div>
+            
+            <h1 class="text-3xl font-bold text-white mb-1 tracking-wide">Math Defender</h1>
+            <p class="text-blue-200 text-sm mb-6">Ultimate Edition</p>
+
+            <div id="main-menu-buttons" class="grid grid-cols-2 gap-3">
+                <button onclick="startGame('add')" class="btn-game w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-2xl text-lg">+ Add</button>
+                <button onclick="startGame('sub')" class="btn-game w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-2xl text-lg">− Sub</button>
+                <button onclick="showTableSelection()" class="btn-game w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 rounded-2xl text-lg">× Mul</button>
+                <button onclick="startGame('div')" class="btn-game w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 rounded-2xl text-lg">÷ Div</button>
+                <button onclick="startGame('mix')" class="btn-game col-span-2 bg-gradient-to-r from-pink-500 to-orange-500 hover:brightness-110 text-white font-bold py-3 rounded-2xl text-lg">🎲 Galaxy Mix</button>
+                <button onclick="showHangar()" class="btn-game bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-2xl text-sm">🛠️ Hangar</button>
+                <button onclick="showLeaderboard()" class="btn-game bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded-2xl text-sm">🏆 Hall of Fame</button>
+            </div>
+
+            <!-- Sub Screens -->
+            <div id="table-selection" class="hidden w-full">
+                <h3 class="text-white font-bold text-lg mb-2">Select Table</h3>
+                <div class="grid grid-cols-5 gap-2 mb-4" id="tables-grid"></div>
+                <button onclick="startGame('mul', 'all')" class="btn-game w-full mb-2 bg-yellow-500 text-white font-bold py-3 rounded-xl">Practice All</button>
+                <button onclick="hideTableSelection()" class="text-sm text-blue-300 underline">Back</button>
+            </div>
+            <div id="hangar-screen" class="hidden w-full">
+                <h3 class="text-white font-bold text-lg mb-2">Ship Hangar</h3>
+                <div class="grid grid-cols-3 gap-2 mb-4" id="hangar-grid"></div>
+                <button onclick="hideHangar()" class="text-sm text-blue-300 underline">Back</button>
+            </div>
+            <div id="leaderboard-screen" class="hidden w-full">
+                <h3 class="text-white font-bold text-lg mb-2">Hall of Fame</h3>
+                <div class="bg-black/30 rounded-xl p-4 mb-4 text-left max-h-40 overflow-y-auto" id="leaderboard-list"></div>
+                <button onclick="hideLeaderboard()" class="text-sm text-blue-300 underline">Back</button>
+            </div>
+            <div id="parents-screen" class="hidden w-full text-left">
+                <h3 class="text-white font-bold text-lg mb-2 text-center">Parent Dashboard</h3>
+                <div class="bg-black/30 rounded-xl p-4 mb-4 max-h-60 overflow-y-auto">
+                    <p class="text-xs text-gray-400 uppercase font-bold mb-2">Recent Struggles (Last 50)</p>
+                    <div id="struggle-list" class="text-sm text-white space-y-2"></div>
+                    <div class="mt-4 pt-4 border-t border-gray-600">
+                        <button onclick="clearParentData()" class="text-xs text-red-400 border border-red-400 rounded px-2 py-1">Clear Data</button>
+                    </div>
+                </div>
+                <button onclick="hideParents()" class="w-full text-center text-sm text-blue-300 underline">Close</button>
             </div>
         </div>
     </div>
 
     <!-- GAME AREA -->
     <div id="game-screen" class="hidden relative w-full h-full max-w-md mx-auto flex flex-col">
-        <div class="absolute top-0 left-0 right-0 z-30 p-2">
-            <div class="glass-panel px-4 py-2 flex justify-between items-center">
+        <div class="absolute top-0 left-0 right-0 z-30 p-2 pointer-events-none">
+            <div class="glass-panel px-4 py-2 flex justify-between items-center pointer-events-auto">
                 <button onclick="endGame(true)" class="text-2xl hover:scale-110">🏠</button>
                 <div class="flex flex-col items-center">
-                    <span class="text-[10px] text-blue-200 uppercase tracking-widest">Rank</span>
-                    <span id="rank-display" class="font-bold text-sm text-yellow-400">Cadet</span>
-                </div>
-                <div id="shields-container" class="flex text-lg gap-1">
-                    <span>🛡️</span><span>🛡️</span><span>🛡️</span>
+                    <div class="flex items-center gap-1">
+                        <span id="streak-badge" class="hidden bg-orange-500 text-white text-[10px] font-bold px-1 rounded">x1</span>
+                        <span id="rank-display" class="font-bold text-sm text-yellow-400 uppercase tracking-widest">Cadet</span>
+                    </div>
+                    <div id="shields-container" class="flex text-lg gap-1"></div>
                 </div>
                 <div class="flex flex-col items-end">
                     <span class="text-[10px] text-blue-200 uppercase tracking-widest">Score</span>
                     <span id="score-display" class="font-bold text-xl">0</span>
+                </div>
+            </div>
+            <div class="flex flex-col items-center mt-2 gap-1 w-full">
+                <div id="powerup-status" class="text-cyan-400 font-bold text-xs uppercase tracking-widest hidden bg-black/50 px-2 rounded">Time Frozen! ⚡</div>
+                <div id="boss-hud" class="w-full max-w-xs px-4 hidden transition-all">
+                    <div class="flex justify-between text-[10px] text-orange-400 font-bold mb-1 bg-black/50 px-2 rounded">
+                        <span>BOSS HP</span>
+                        <span id="boss-hp-text">3/3</span>
+                    </div>
+                    <div class="w-full h-2 bg-white/20 rounded-full overflow-hidden border border-white/10">
+                        <div id="boss-hp-bar" class="h-full bg-orange-500 transition-all duration-300" style="width: 100%"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -184,17 +181,23 @@
         <div id="space-area" class="flex-grow relative overflow-hidden"></div>
 
         <div class="absolute bottom-28 left-0 w-full h-16 pointer-events-none z-20">
-             <div id="player-ship" class="ship-base text-6xl absolute bottom-0 left-1/2 transform -translate-x-1/2">🚀</div>
+             <div id="player-ship" class="ship-base text-6xl absolute bottom-0 left-1/2 transform -translate-x-1/2 transition-all duration-300">
+                🚀
+                <div id="shield-effect" class="ship-shield hidden"></div>
+             </div>
         </div>
 
         <div class="relative z-30 mb-2 px-2">
             <div class="glass-panel p-5 flex flex-col items-center justify-center relative">
-                <div class="flex items-center justify-center space-x-4 text-7xl font-bold text-white w-full">
+                <div id="question-container" class="flex items-center justify-center space-x-4 text-7xl font-bold text-white w-full drop-shadow-lg">
                     <div id="num1">?</div>
                     <div id="operator" class="text-yellow-400">×</div>
                     <div id="num2">?</div>
                 </div>
-                <div class="text-[10px] text-blue-300 mt-2 font-bold uppercase tracking-widest animate-pulse">Tap the correct asteroid!</div>
+                <div class="flex justify-between w-full mt-2 items-end">
+                    <div class="text-[10px] text-blue-300 font-bold uppercase">Stars: ⭐<span id="stars-display">0</span></div>
+                    <div id="mission-alert" class="text-[10px] text-blue-300 font-bold uppercase animate-pulse">Defend Earth!</div>
+                </div>
             </div>
         </div>
     </div>
@@ -202,62 +205,33 @@
     <!-- GAME OVER -->
     <div id="game-over-screen" class="hidden absolute inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-6 text-center">
         <h2 class="text-5xl font-bold text-red-500 mb-2">Ship Down!</h2>
-        <p class="text-gray-300 text-lg mb-8">The galaxy needs you. Try again!</p>
-        <div class="glass-panel p-8 w-full max-w-sm mb-10">
-            <div id="final-score" class="text-6xl font-bold text-white mb-6">0</div>
-            <div id="final-rank" class="text-2xl font-bold text-yellow-400">Cadet</div>
+        <div class="glass-panel p-6 w-full max-w-sm mb-6">
+            <div id="final-score" class="text-6xl font-bold text-white mb-2">0</div>
+            <div class="flex justify-center gap-4 text-sm mb-4">
+                <span class="text-yellow-400">⭐ +<span id="final-stars-earned">0</span></span>
+                <span class="text-cyan-400" id="final-rank-text">Cadet</span>
+            </div>
+            <input type="text" id="player-name" placeholder="Enter Name" class="bg-white/10 text-white p-2 rounded w-full text-center mb-2 uppercase font-bold" maxlength="8">
+            <button onclick="saveScoreAndClose()" class="bg-green-600 w-full py-2 rounded font-bold text-sm">Save Score</button>
         </div>
-        <button onclick="showMenu()" class="btn-game bg-blue-600 text-white font-bold py-4 px-12 rounded-full text-xl shadow-xl">Restart Mission</button>
+        <button onclick="showMenu()" class="text-gray-400 underline text-sm">Skip & Menu</button>
     </div>
 
     <script>
-        // --- PWA MANIFEST (Blob implementation for single file) ---
-        const manifest = {
-            "name": "Math Defender: Galaxy",
-            "short_name": "MathDefender",
-            "start_url": ".",
-            "display": "standalone",
-            "background_color": "#0f0c29",
-            "theme_color": "#0f0c29",
-            "icons": [
-                {
-                    "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdG09IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSI0MCIgZmlsbD0iIzBmMGMyOSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjkwIiBkeT0iLjM1ZW0iIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIj7wn5iEPC90ZXh0Pjwvc3ZnPg==",
-                    "sizes": "192x192",
-                    "type": "image/png"
-                }
-            ]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(manifestBlob);
-        const manifestTag = document.createElement('link');
-        manifestTag.rel = 'manifest';
-        manifestTag.href = manifestURL;
-        document.head.appendChild(manifestTag);
-
-        // --- SERVICE WORKER ---
+        /* --- Service Worker Registration --- */
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                const swCode = `
-                    const CACHE_NAME = 'math-defender-v1';
-                    self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME)));
-                    self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(res => res || fetch(e.request))));
-                `;
-                const swBlob = new Blob([swCode], {type: 'application/javascript'});
-                const swURL = URL.createObjectURL(swBlob);
-                // In a real GitHub deployment, you should use a static sw.js file. 
-                // This Blob is for standalone demo purposes.
-                // navigator.serviceWorker.register(swURL); 
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW Registered', reg))
+                    .catch(err => console.log('SW Failed', err));
             });
         }
 
-        // --- INSTALL LOGIC ---
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
+            e.preventDefault(); deferredPrompt = e;
             document.getElementById('install-banner').classList.remove('hidden');
         });
-
         document.getElementById('install-button').addEventListener('click', async () => {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
@@ -267,131 +241,81 @@
             }
         });
 
-        // --- GAME LOGIC ---
-        const RANKS = [
-            { score: 0, title: "Cadet" }, { score: 500, title: "Scout" },
-            { score: 1200, title: "Ranger" }, { score: 2500, title: "Captain" },
-            { score: 5000, title: "Commander" }, { score: 10000, title: "Admiral" }
-        ];
+        /* --- GAME LOGIC --- */
+        const SHIPS = [ { id:'rocket', emoji:'🚀', cost:0 }, { id:'ufo', emoji:'🛸', cost:300 }, { id:'alien', emoji:'👾', cost:700 }, { id:'sat', emoji:'🛰️', cost:1500 }, { id:'dragon', emoji:'🐉', cost:3000 } ];
+        let totalStars = parseInt(localStorage.getItem('mathStars'))||0;
+        let unlockedShips = JSON.parse(localStorage.getItem('unlockedShips'))||['rocket'];
+        let currentShip = localStorage.getItem('currentShip')||'🚀';
+        let leaderboard = JSON.parse(localStorage.getItem('leaderboard'))||[];
+        let mistakeLog = JSON.parse(localStorage.getItem('mistakeLog'))||[];
+        let dailyMission = JSON.parse(localStorage.getItem('dailyMission'))||generateDailyMission();
+        let voiceEnabled = localStorage.getItem('voiceEnabled')==='true';
+        
+        let currentMode='mix', currentTable=null, score=0, sessionStars=0, shields=3;
+        let currentAnswer=0, isPlaying=false, gameLoopId, meteors=[], difficultySpeed=1.0, isWaveClear=false;
+        let streak=0, streakMultiplier=1, isFrozen=false, hasSuperShield=false, bossActive=false, bossHP=3;
 
-        let currentMode = 'mix', currentTable = null, score = 0, shields = 3, currentAnswer = 0, isPlaying = false;
-        let gameLoopId, meteors = [], difficultySpeed = 1.0, isWaveClear = false;
+        window.onload = () => {
+            document.getElementById('voice-icon').innerText = voiceEnabled ? "🎙️" : "🔇";
+            checkDailyMissionReset(); renderHangar(); renderLeaderboard(); updateMainMenuUI(); renderTableSelection();
+        };
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
         function playSound(type) {
-            try {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                const now = audioCtx.currentTime;
-                if (type === 'shoot') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(880, now); osc.frequency.exponentialRampToValueAtTime(110, now + 0.2); gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.2); osc.start(now); osc.stop(now + 0.2); }
-                else if (type === 'explosion') { osc.type = 'square'; osc.frequency.setValueAtTime(120, now); osc.frequency.exponentialRampToValueAtTime(40, now + 0.3); gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.3); osc.start(now); osc.stop(now + 0.3); }
-                else if (type === 'damage') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(50, now + 0.4); gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0, now + 0.4); osc.start(now); osc.stop(now + 0.4); }
-                else if (type === 'rankup') { osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.linearRampToValueAtTime(800, now + 0.3); gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.6); osc.start(now); osc.stop(now + 0.6); }
-            } catch (e) {}
+            if(audioCtx.state==='suspended') audioCtx.resume();
+            const osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const now=audioCtx.currentTime;
+            if(type==='shoot'){osc.type='sawtooth';osc.frequency.setValueAtTime(880,now);osc.frequency.exponentialRampToValueAtTime(110,now+0.15);gain.gain.setValueAtTime(0.1,now);gain.gain.linearRampToValueAtTime(0,now+0.15);osc.start(now);osc.stop(now+0.15);}
+            else if(type==='explosion'){osc.type='square';osc.frequency.setValueAtTime(120,now);osc.frequency.exponentialRampToValueAtTime(40,now+0.3);gain.gain.setValueAtTime(0.1,now);gain.gain.linearRampToValueAtTime(0,now+0.3);osc.start(now);osc.stop(now+0.3);}
+            else if(type==='damage'){osc.type='sawtooth';osc.frequency.setValueAtTime(150,now);osc.frequency.linearRampToValueAtTime(50,now+0.4);gain.gain.setValueAtTime(0.2,now);gain.gain.linearRampToValueAtTime(0,now+0.4);osc.start(now);osc.stop(now+0.4);}
+            else if(type==='powerup'){osc.type='sine';osc.frequency.setValueAtTime(440,now);osc.frequency.linearRampToValueAtTime(880,now+0.2);gain.gain.setValueAtTime(0.1,now);gain.gain.linearRampToValueAtTime(0,now+0.4);osc.start(now);osc.stop(now+0.4);}
         }
 
-        function showTableSelection() { document.getElementById('main-menu-buttons').classList.add('hidden'); document.getElementById('table-selection').classList.remove('hidden'); }
-        function hideTableSelection() { document.getElementById('table-selection').classList.add('hidden'); document.getElementById('main-menu-buttons').classList.remove('hidden'); }
+        function toggleVoice() { voiceEnabled = !voiceEnabled; localStorage.setItem('voiceEnabled', voiceEnabled); document.getElementById('voice-icon').innerText = voiceEnabled ? "🎙️" : "🔇"; if(voiceEnabled) speak("Voice Activated"); }
+        function speak(text) { if(!voiceEnabled || !window.speechSynthesis) return; const u = new SpeechSynthesisUtterance(text); u.rate = 1.1; u.pitch = 1.1; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u); }
 
-        function startGame(mode, table = null) {
-            currentMode = mode; currentTable = table === 'all' ? null : table;
-            score = 0; shields = 3; difficultySpeed = 1.0; meteors = []; isWaveClear = true;
-            document.getElementById('space-area').innerHTML = `<div id="rank-up-msg" class="absolute inset-0 bg-black/60 flex items-center justify-center flex-col hidden z-40 pointer-events-none"><div class="text-6xl mb-2 animate-bounce">🌟</div><div class="text-3xl font-bold text-yellow-400 drop-shadow-lg">PROMOTED!</div><div id="new-rank-name" class="text-white text-2xl font-bold">Ranger</div></div>`;
-            document.getElementById('player-ship').style.left = '50%';
-            updateHUD();
-            document.getElementById('menu-screen').classList.add('hidden');
-            document.getElementById('game-over-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            isPlaying = true; gameLoop(); nextWave();
-        }
+        function logMistake(n1,n2,op){ mistakeLog.unshift({entry:`${n1} ${op} ${n2}`, date:new Date().toLocaleDateString()}); if(mistakeLog.length>50)mistakeLog.pop(); localStorage.setItem('mistakeLog', JSON.stringify(mistakeLog)); }
+        function showParents(){ document.getElementById('main-menu-buttons').classList.add('hidden'); document.getElementById('parents-screen').classList.remove('hidden'); const l=document.getElementById('struggle-list'); l.innerHTML=''; const c={}; mistakeLog.forEach(m=>c[m.entry]=(c[m.entry]||0)+1); const s=Object.entries(c).sort((a,b)=>b[1]-a[1]); if(s.length===0)l.innerHTML='<p class="text-center text-gray-500 italic">No data yet.</p>'; else s.forEach(([f,n])=>{l.innerHTML+=`<div class="flex justify-between bg-white/10 p-2 rounded"><span>${f}</span><span class="text-red-300 font-bold">${n} err</span></div>`}); }
+        function hideParents(){ document.getElementById('parents-screen').classList.add('hidden'); document.getElementById('main-menu-buttons').classList.remove('hidden'); }
+        function clearParentData(){ mistakeLog=[]; localStorage.setItem('mistakeLog',JSON.stringify([])); showParents(); }
 
-        function showMenu() { isPlaying = false; cancelAnimationFrame(gameLoopId); document.getElementById('game-screen').classList.add('hidden'); document.getElementById('menu-screen').classList.remove('hidden'); document.getElementById('game-over-screen').classList.add('hidden'); }
-        function endGame(manual = false) { isPlaying = false; cancelAnimationFrame(gameLoopId); if(manual) { showMenu(); return; } document.getElementById('final-score').innerText = score; document.getElementById('final-rank').innerText = getRankTitle(score); document.getElementById('game-over-screen').classList.remove('hidden'); }
-        function updateHUD() { document.getElementById('score-display').innerText = score; document.getElementById('rank-display').innerText = getRankTitle(score); const shieldContainer = document.getElementById('shields-container'); shieldContainer.innerHTML = ''; for(let i=0; i<3; i++) { if(i < shields) shieldContainer.innerHTML += '<span class="animate-pulse text-green-400">🛡️</span>'; else shieldContainer.innerHTML += '<span class="opacity-20 grayscale">🛡️</span>'; } }
-        function getRankTitle(pts) { for (let i = RANKS.length - 1; i >= 0; i--) { if (pts >= RANKS[i].score) return RANKS[i].title; } return RANKS[0].title; }
+        function generateDailyMission(){ const t=[{text:"Score 1000 pts",type:"score",target:1000},{text:"Collect 50 Stars",type:"stars",target:50},{text:"Reach 5x Streak",type:"streak",target:5}]; const m=t[Math.floor(Math.random()*t.length)]; return {...m,progress:0,date:new Date().toDateString(),completed:false}; }
+        function checkDailyMissionReset(){ if(dailyMission.date!==new Date().toDateString()){dailyMission=generateDailyMission();localStorage.setItem('dailyMission',JSON.stringify(dailyMission));} }
+        function updateMissionProgress(type,val){ if(dailyMission.completed)return; if(dailyMission.type===type){ dailyMission.progress=type==='streak'?Math.max(dailyMission.progress,val):dailyMission.progress+val; if(dailyMission.progress>=dailyMission.target){ dailyMission.completed=true; dailyMission.progress=dailyMission.target; totalStars+=100; playSound('powerup'); alert("MISSION COMPLETE! +100 Stars"); } localStorage.setItem('dailyMission',JSON.stringify(dailyMission)); } }
+        function updateMainMenuUI(){ document.getElementById('total-stars').innerText=totalStars; document.getElementById('mission-text').innerText=dailyMission.text; document.getElementById('mission-bar').style.width=`${Math.min(100,(dailyMission.progress/dailyMission.target)*100)}%`; document.getElementById('mission-status').innerText=dailyMission.completed?"DONE":`${dailyMission.progress}/${dailyMission.target}`; document.getElementById('mission-status').className=dailyMission.completed?"text-xs bg-green-500 px-2 py-1 rounded text-white font-bold":"text-xs bg-gray-600 px-2 py-1 rounded text-white"; }
 
-        function generateProblem() {
-            let n1, n2, opSym, mode = currentMode;
-            if (mode === 'mix') mode = ['add', 'sub', 'mul', 'div'][Math.floor(Math.random() * 4)];
-            let maxN = score > 2000 ? 12 : 9;
-            switch (mode) {
-                case 'add': n1 = Math.floor(Math.random() * maxN) + 1; n2 = Math.floor(Math.random() * maxN) + 1; currentAnswer = n1 + n2; opSym = '+'; break;
-                case 'sub': n1 = Math.floor(Math.random() * maxN) + 2; n2 = Math.floor(Math.random() * (n1 - 1)) + 1; currentAnswer = n1 - n2; opSym = '−'; break;
-                case 'mul': n1 = currentTable || Math.floor(Math.random() * (score > 1000 ? 12 : 10)); n2 = Math.floor(Math.random() * 11); currentAnswer = n1 * n2; opSym = '×'; break;
-                case 'div': let q = Math.floor(Math.random() * 9) + 1, d = Math.floor(Math.random() * 9) + 1; n1 = q * d; n2 = d; currentAnswer = q; opSym = '÷'; break;
-            }
-            document.getElementById('num1').innerText = n1; document.getElementById('num2').innerText = n2; document.getElementById('operator').innerText = opSym;
-        }
+        function renderTableSelection(){ const g=document.getElementById('tables-grid'); g.innerHTML=''; for(let i=1;i<=10;i++) g.innerHTML+=`<button onclick="startGame('mul',${i})" class="btn-game bg-white/20 hover:bg-white/40 text-white font-bold py-3 rounded-xl text-lg">${i}</button>`; }
+        function showTableSelection(){ document.getElementById('main-menu-buttons').classList.add('hidden'); document.getElementById('table-selection').classList.remove('hidden'); }
+        function hideTableSelection(){ document.getElementById('table-selection').classList.add('hidden'); document.getElementById('main-menu-buttons').classList.remove('hidden'); }
+        function renderHangar(){ const g=document.getElementById('hangar-grid'); g.innerHTML=''; SHIPS.forEach(s=>{ const o=unlockedShips.includes(s.id), a=currentShip===s.emoji; g.innerHTML+=`<div class="glass-panel p-2 flex flex-col items-center ${a?'border-yellow-400 bg-yellow-400/10':''}"><div class="text-3xl mb-1">${s.emoji}</div>${o?`<button onclick="selectShip('${s.id}')" class="text-[10px] font-bold uppercase ${a?'text-yellow-400':'text-blue-200'}">${a?'Active':'Equip'}</button>`:`<button onclick="buyShip('${s.id}')" class="bg-yellow-500 text-black px-2 py-1 rounded-full text-[10px] font-bold">⭐ ${s.cost}</button>`}</div>`; }); document.getElementById('total-stars').innerText=totalStars; }
+        function buyShip(id){ const s=SHIPS.find(x=>x.id===id); if(totalStars>=s.cost){ totalStars-=s.cost; unlockedShips.push(id); savePersistent(); renderHangar(); playSound('powerup'); } }
+        function selectShip(id){ currentShip=SHIPS.find(x=>x.id===id).emoji; savePersistent(); renderHangar(); }
+        function showHangar(){ renderHangar(); document.getElementById('main-menu-buttons').classList.add('hidden'); document.getElementById('hangar-screen').classList.remove('hidden'); }
+        function hideHangar(){ document.getElementById('hangar-screen').classList.add('hidden'); document.getElementById('main-menu-buttons').classList.remove('hidden'); }
+        function savePersistent(){ localStorage.setItem('mathStars',totalStars); localStorage.setItem('unlockedShips',JSON.stringify(unlockedShips)); localStorage.setItem('currentShip',currentShip); }
+        function showLeaderboard(){ document.getElementById('main-menu-buttons').classList.add('hidden'); document.getElementById('leaderboard-screen').classList.remove('hidden'); renderLeaderboard(); }
+        function hideLeaderboard(){ document.getElementById('leaderboard-screen').classList.add('hidden'); document.getElementById('main-menu-buttons').classList.remove('hidden'); }
+        function renderLeaderboard(){ const l=document.getElementById('leaderboard-list'); l.innerHTML=''; if(leaderboard.length===0)l.innerHTML='<p class="text-center text-gray-500">No scores yet.</p>'; leaderboard.sort((a,b)=>b.score-a.score).slice(0,5).forEach((e,i)=>{ l.innerHTML+=`<div class="flex justify-between text-white text-sm border-b border-gray-700 py-1"><span>${i+1}. ${e.name}</span><span class="font-bold text-yellow-400">${e.score}</span></div>`; }); }
+        function saveScoreAndClose(){ const name=document.getElementById('player-name').value.trim()||"Cadet"; leaderboard.push({name,score}); localStorage.setItem('leaderboard',JSON.stringify(leaderboard)); showMenu(); }
 
-        function nextWave() {
-            if (!isPlaying) return; isWaveClear = false; generateProblem();
-            let ansArr = [currentAnswer];
-            while (ansArr.length < 3) { let w = currentAnswer + Math.floor(Math.random() * 12) - 6; if (w >= 0 && !ansArr.includes(w)) ansArr.push(w); }
-            ansArr.sort(() => Math.random() - 0.5);
-            const wWidth = document.getElementById('game-screen').offsetWidth, sWidth = wWidth / 3;
-            ansArr.forEach((ans, i) => {
-                const m = document.createElement('div'); m.className = 'meteor pop-in'; m.innerText = ans; m.dataset.value = ans;
-                const cX = (i * sWidth) + (sWidth / 2) - 42;
-                m.style.left = (cX + (Math.random() * 30 - 15)) + 'px'; m.style.top = '-120px'; m.dataset.speed = difficultySpeed + (Math.random() * 0.4); m.dataset.y = -120;
-                m.onpointerdown = (e) => handleMeteorClick(e, m);
-                document.getElementById('space-area').appendChild(m); meteors.push(m);
-            });
-        }
+        function startGame(mode,table=null){ currentMode=mode; currentTable=table==='all'?null:table; score=0; sessionStars=0; shields=3; difficultySpeed=1.0; meteors=[]; isWaveClear=true; isFrozen=false; hasSuperShield=false; bossActive=false; bossHP=3; streak=0; streakMultiplier=1; document.body.className="h-screen w-screen overflow-hidden flex flex-col items-center justify-center"; document.getElementById('player-ship').innerHTML=currentShip+`<div id="shield-effect" class="ship-shield hidden"></div>`; document.getElementById('player-ship').style.left='50%'; document.getElementById('boss-hud').classList.add('hidden'); updateHUD(); document.getElementById('menu-screen').classList.add('hidden'); document.getElementById('game-over-screen').classList.add('hidden'); document.getElementById('game-screen').classList.remove('hidden'); isPlaying=true; gameLoop(); nextWave(); }
+        function endGame(manual=false){ isPlaying=false; cancelAnimationFrame(gameLoopId); if(manual){ showMenu(); return; } totalStars+=sessionStars; updateMissionProgress('score',score); updateMissionProgress('stars',sessionStars); savePersistent(); updateMainMenuUI(); document.getElementById('final-score').innerText=score; document.getElementById('final-stars-earned').innerText=sessionStars; document.getElementById('final-rank-text').innerText=getRankTitle(score); document.getElementById('game-over-screen').classList.remove('hidden'); }
+        function showMenu(){ isPlaying=false; cancelAnimationFrame(gameLoopId); document.getElementById('game-screen').classList.add('hidden'); document.getElementById('game-over-screen').classList.add('hidden'); document.getElementById('menu-screen').classList.remove('hidden'); updateMainMenuUI(); }
 
-        function gameLoop() {
-            if (!isPlaying) return; const sH = document.getElementById('space-area').offsetHeight; let wD = false;
-            for (let i = meteors.length - 1; i >= 0; i--) {
-                let m = meteors[i], y = parseFloat(m.dataset.y) + parseFloat(m.dataset.speed);
-                m.dataset.y = y; m.style.top = y + 'px'; m.style.transform = `rotate(${y}deg)`;
-                if (y > sH - 70) { if (parseInt(m.dataset.value) === currentAnswer) { takeDamage(); wD = true; } else { m.remove(); meteors.splice(i, 1); } }
-            }
-            if (wD || (meteors.length === 0 && !isWaveClear)) { clearWave(); if (shields > 0) setTimeout(nextWave, 1000); }
-            gameLoopId = requestAnimationFrame(gameLoop);
-        }
-
-        function handleMeteorClick(e, m) {
-            e.preventDefault(); if (isWaveClear) return;
-            const gR = document.getElementById('game-screen').getBoundingClientRect(), mR = m.getBoundingClientRect(), tX = mR.left - gR.left + (mR.width / 2);
-            const ship = document.getElementById('player-ship'), sX = Math.max(35, Math.min(gR.width - 35, tX));
-            ship.style.left = sX + 'px';
-            const sY = document.getElementById('game-screen').offsetHeight - 112, mY = mR.top - gR.top + mR.height/2;
-            fireLaser(sX, mY, sY);
-            if (parseInt(m.dataset.value) === currentAnswer) {
-                playSound('shoot'); setTimeout(() => playSound('explosion'), 100); createExp(m.offsetLeft, m.offsetTop, '💥');
-                score += 100; difficultySpeed = 1.0 + (score / 3000); updateHUD(); checkRankUp(); clearWave(); setTimeout(nextWave, 600);
-            } else {
-                playSound('damage'); createExp(m.offsetLeft, m.offsetTop, '❌'); m.style.backgroundColor = 'red'; m.classList.add('shake'); takeDamage(); clearWave(); if (shields > 0) setTimeout(nextWave, 1200);
-            }
-        }
-
-        function fireLaser(x, tY, sY) {
-            const container = document.getElementById('game-screen'), laser = document.createElement('div');
-            laser.className = 'laser'; laser.style.height = (sY - tY) + 'px'; laser.style.left = (x - 4) + 'px'; laser.style.bottom = '112px'; container.appendChild(laser);
-            document.getElementById('player-ship').style.transform = "translate(-50%, 15px)";
-            setTimeout(() => { document.getElementById('player-ship').style.transform = "translate(-50%, 0)"; laser.remove(); }, 200);
-        }
-
-        function createExp(x, y, emoji) { const el = document.createElement('div'); el.className = 'explosion'; el.innerText = emoji; el.style.left = x + 'px'; el.style.top = y + 'px'; document.getElementById('space-area').appendChild(el); setTimeout(() => el.remove(), 500); }
-        function clearWave() { isWaveClear = true; meteors.forEach(m => m.remove()); meteors = []; }
-
-        function takeDamage() {
-            shields--; playSound('damage'); document.getElementById('game-screen').classList.add('shake');
-            setTimeout(() => document.getElementById('game-screen').classList.remove('shake'), 500); updateHUD();
-            if (shields <= 0) endGame();
-        }
-
-        function checkRankUp() {
-            const rank = RANKS.reverse().find(r => score >= r.score); RANKS.reverse();
-            if (document.getElementById('rank-display').innerText !== rank.title) {
-                playSound('rankup'); const modal = document.getElementById('rank-up-msg');
-                document.getElementById('new-rank-name').innerText = rank.title;
-                modal.classList.remove('hidden'); modal.classList.add('flex', 'pop-in');
-                if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
-                setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 2200);
-                updateHUD();
-            }
-        }
+        function generateProblem(){ let n1, n2, op, m=currentMode; if(m==='mix')m=['add','sub','mul','div'][Math.floor(Math.random()*4)]; let maxN=score>2000?12:9; switch(m){ case 'add': n1=rInt(1,maxN); n2=rInt(1,maxN); currentAnswer=n1+n2; op='+'; break; case 'sub': n1=rInt(2,maxN); n2=rInt(1,n1-1); currentAnswer=n1-n2; op='−'; break; case 'mul': n1=currentTable||rInt(0,score>1000?12:10); n2=rInt(0,10); currentAnswer=n1*n2; op='×'; break; case 'div': let q=rInt(1,9), d=rInt(1,9); n1=q*d; n2=d; currentAnswer=q; op='÷'; break; } document.getElementById('num1').innerText=n1; document.getElementById('num2').innerText=n2; document.getElementById('operator').innerText=op; const w={'+':'plus','−':'minus','×':'times','÷':'divided by'}; speak(`${n1} ${w[op]} ${n2}`); }
+        function nextWave(){ if(!isPlaying)return; isWaveClear=false; if(score>0 && score%1000===0 && !bossActive){spawnBoss(); return;} generateProblem(); let ansArr=[currentAnswer]; while(ansArr.length<3){ let w; if(score>1500 && Math.random()>0.5) w=currentAnswer+(Math.random()<0.5?1:-1)*rInt(1,3); else w=currentAnswer+rInt(-5,5); if(w>=0 && !ansArr.includes(w)) ansArr.push(w); } ansArr.sort(()=>Math.random()-0.5); const pu=Math.random()<0.15?['⚡','🛡️','🚀'][Math.floor(Math.random()*3)]:null; const items=pu?[...ansArr,pu]:ansArr; const wW=document.getElementById('game-screen').offsetWidth; items.forEach((it,i)=>{ const m=document.createElement('div'); const isP=['⚡','🛡️','🚀'].includes(it); m.className=`meteor pop-in ${isP?'power-up':''}`; m.innerText=it; m.dataset.value=it; m.dataset.type=isP?'power':'num'; const cX=(i*(wW/items.length))+((wW/items.length)/2)-42; m.style.left=(cX+rInt(-10,10))+'px'; m.style.top='-120px'; m.dataset.speed=(difficultySpeed*(isFrozen?0.3:1))+(Math.random()*0.4); m.dataset.y=-120; m.onpointerdown=(e)=>handleMeteorClick(e,m); document.getElementById('space-area').appendChild(m); meteors.push(m); }); }
+        function handleMeteorClick(e,m){ e.preventDefault(); if(isWaveClear)return; const ship=document.getElementById('player-ship'); const gR=document.getElementById('game-screen').getBoundingClientRect(), mR=m.getBoundingClientRect(); const sX=Math.max(35,Math.min(gR.width-35,mR.left-gR.left+mR.width/2)); ship.style.left=sX+'px'; fireLaser(sX,mR.top-gR.top+mR.height/2,gR.height-112); if(m.dataset.type==='power'){applyPowerUp(m.dataset.value); m.remove(); return;} if(m.dataset.type==='boss')return; if(parseInt(m.dataset.value)===currentAnswer){ playSound('shoot'); setTimeout(()=>playSound('explosion'),100); createExp(m.offsetLeft,m.offsetTop,'💥'); streak++; streakMultiplier=streak>=10?4:(streak>=5?2:1); updateMissionProgress('streak',streak); if(bossActive){ bossHP--; updateHUD(); if(bossHP<=0){ score+=500*streakMultiplier; sessionStars+=100; bossActive=false; document.getElementById('boss-hud').classList.add('hidden'); if(typeof confetti==='function')confetti({particleCount:200,spread:150}); clearWave(); setTimeout(nextWave,1000); } else { generateProblem(); clearWave(); setTimeout(nextWave,400); } } else { score+=50*streakMultiplier; sessionStars+=10; difficultySpeed=1.0+(score/5000); if(score>=2000)document.body.className+=" deep"; else if(score>=1000); updateHUD(); clearWave(); setTimeout(nextWave,600); } } else { playSound('damage'); createExp(m.offsetLeft,m.offsetTop,'❌'); m.style.backgroundColor='red'; m.classList.add('shake'); streak=0; streakMultiplier=1; logMistake(document.getElementById('num1').innerText,document.getElementById('num2').innerText,document.getElementById('operator').innerText); takeDamage(); clearWave(); if(shields>0)setTimeout(nextWave,1200); } }
+        function spawnBoss(){ bossActive=true; bossHP=3; playSound('powerup'); document.getElementById('boss-hud').classList.remove('hidden'); updateHUD(); generateProblem(); const m=document.createElement('div'); m.className='meteor boss pop-in'; m.innerText="?"; m.dataset.type="boss"; m.style.left='50%'; m.style.transform='translateX(-50%)'; m.style.top='-200px'; m.dataset.speed=0.4; m.dataset.y=-200; document.getElementById('space-area').appendChild(m); meteors.push(m); }
+        function gameLoop(){ if(!isPlaying)return; const sH=document.getElementById('space-area').offsetHeight; let wD=false; for(let i=meteors.length-1;i>=0;i--){ let m=meteors[i], sm=isFrozen?0.3:1.0; let y=parseFloat(m.dataset.y)+(parseFloat(m.dataset.speed)*sm); m.dataset.y=y; m.style.top=y+'px'; if(m.dataset.type!=='boss')m.style.transform=`rotate(${y}deg)`; if(y>sH-(m.dataset.type==='boss'?180:70)){ if(m.dataset.type==='num'&&parseInt(m.dataset.value)===currentAnswer){takeDamage(); wD=true;} else if(m.dataset.type==='boss'){takeDamage(); takeDamage(); takeDamage(); wD=true;} else{m.remove(); meteors.splice(i,1);} } } if(wD||(meteors.length===0&&!isWaveClear)){clearWave(); if(shields>0)setTimeout(nextWave,1000);} gameLoopId=requestAnimationFrame(gameLoop); }
+        function applyPowerUp(t){ playSound('powerup'); if(t==='⚡'){isFrozen=true; document.getElementById('powerup-status').classList.remove('hidden'); setTimeout(()=>{isFrozen=false; document.getElementById('powerup-status').classList.add('hidden');},6000);} else if(t==='🛡️'){hasSuperShield=true; updateHUD();} else if(t==='🚀'){score+=200; sessionStars+=20; if(typeof confetti==='function')confetti({particleCount:100}); clearWave(); setTimeout(nextWave,600);} }
+        function takeDamage(){ if(hasSuperShield){hasSuperShield=false; updateHUD(); return;} shields--; streak=0; streakMultiplier=1; playSound('damage'); document.getElementById('game-screen').classList.add('shake'); setTimeout(()=>document.getElementById('game-screen').classList.remove('shake'),500); updateHUD(); if(shields<=0)endGame(); }
+        function updateHUD(){ document.getElementById('score-display').innerText=score; document.getElementById('stars-display').innerText=sessionStars; document.getElementById('rank-display').innerText=getRankTitle(score); document.getElementById('shields-container').innerHTML=Array(3).fill(0).map((_,i)=>i<shields?'<span class="animate-pulse text-green-400">🛡️</span>':'<span class="opacity-20 grayscale">🛡️</span>').join(''); document.getElementById('shield-effect').classList.toggle('hidden',!hasSuperShield); document.getElementById('streak-badge').classList.toggle('hidden',streak<5); document.getElementById('streak-badge').innerText=`x${streakMultiplier} Streak!`; if(bossActive){document.getElementById('boss-hp-text').innerText=`${bossHP}/3`; document.getElementById('boss-hp-bar').style.width=`${(bossHP/3)*100}%`; document.getElementById('mission-alert').innerText="BOSS FIGHT!";} else {document.getElementById('mission-alert').innerText="Defend Earth!";} }
+        function fireLaser(x,tY,sY){ const l=document.createElement('div'); l.className='laser'; l.style.height=(sY-tY)+'px'; l.style.left=(x-4)+'px'; l.style.bottom='112px'; document.getElementById('game-screen').appendChild(l); const s=document.getElementById('player-ship'); s.style.transform="translate(-50%,15px)"; setTimeout(()=>{s.style.transform="translate(-50%,0)"; l.remove();},200); }
+        function createExp(x,y,e){ const el=document.createElement('div'); el.className='explosion'; el.innerText=e; el.style.left=x+'px'; el.style.top=y+'px'; document.getElementById('space-area').appendChild(el); setTimeout(()=>el.remove(),500); }
+        function clearWave(){ isWaveClear=true; meteors.forEach(m=>m.remove()); meteors=[]; }
+        function rInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+        function getRankTitle(pts){ return ([{s:0,t:"Cadet"},{s:1000,t:"Scout"},{s:3000,t:"Ranger"},{s:6000,t:"Captain"},{s:12000,t:"Admiral"}].reverse().find(x=>pts>=x.s)||{t:"Cadet"}).t; }
     </script>
 </body>
 </html>
